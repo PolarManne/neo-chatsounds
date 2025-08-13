@@ -129,7 +129,7 @@ function data.BuildFromGitHubMsgPack(repo, branch, base_path, force_recompile)
 				sound_count = sound_count + 1
 
 				local realm = raw_sound_data[1]:lower()
-				local sound_key = raw_sound_data[2]:lower():gsub("%.ogg$", ""):gsub("[%_%-]", " "):gsub("[%s\t\n\r]+", " ")
+				local sound_key = raw_sound_data[2]:lower():gsub("%.mp3$", "")
 				local path = raw_sound_data[3]
 
 				if #sound_key > 0 then
@@ -138,7 +138,7 @@ function data.BuildFromGitHubMsgPack(repo, branch, base_path, force_recompile)
 					end
 
 					local url = BUILD_CONTENT_URL(repo, branch, ("%s/%s"):format(base_path, path))
-					local sound_path = ("chatsounds/cache/%s/%s.ogg"):format(realm, util.SHA1(url))
+					local sound_path = ("chatsounds/cache/%s/%s.mp3"):format(realm, util.SHA1(url))
 					local sound_data = {
 						Url = url,
 						Realm = realm,
@@ -204,23 +204,13 @@ function data.BuildFromGithub(repo, branch, base_path, force_recompile)
 
 				update_loading_state()
 
-				if file_data.path:GetExtensionFromFilename() == "ogg" then
+				if file_data.path:GetExtensionFromFilename() == "mp3" then
 					sound_count = sound_count + 1
 
 					local path = file_data.path:gsub("^" .. base_path:PatternSafe(), "")
 					local path_chunks = path:Split("/")
 					local realm = path_chunks[2]:lower()
-					local sound_key = path_chunks[3]:lower():gsub("%.ogg$", ""):gsub("[%_%-]", " "):gsub("[%s\t\n\r]+", " "):Trim()
-
-					-- for files deep inside the folder structure we use the parent folder name as sound key
-					if #path_chunks > 4 then
-						sound_key = path_chunks[#path_chunks - 1]:lower():gsub("%.ogg$", ""):gsub("[%_%-]", " "):gsub("[%s\t\n\r]+", " "):Trim()
-					end
-
-					-- priority operator to signal sound file name should be used instead of folder
-					if path_chunks[#path_chunks][1] == "!" then -- if sound file name starts with "!" prefer using sound file name
-						sound_key = path_chunks[#path_chunks]:lower():gsub("%.ogg$", ""):gsub("[%_%-]", " "):gsub("[%s\t\n\r]+", " "):Trim():sub(2)
-					end
+					local sound_key = path_chunks[#path_chunks]:lower():gsub("%.mp3$", "")
 
 					if #sound_key > 0 then
 						if not data.Repositories[repo_key].List[sound_key] then
@@ -228,7 +218,7 @@ function data.BuildFromGithub(repo, branch, base_path, force_recompile)
 						end
 
 						local url = BUILD_CONTENT_URL(repo, branch, file_data.path)
-						local sound_path = ("chatsounds/cache/%s/%s.ogg"):format(realm, util.SHA1(url))
+						local sound_path = ("chatsounds/cache/%s/%s.mp3"):format(realm, util.SHA1(url))
 						local sound_data = {
 							Url = url,
 							Realm = realm,
@@ -261,7 +251,7 @@ end
 local MAX_DYN_CHUNK_CHUNK_SIZE = 2e999 --1000
 -- TODO: fix completion breaking when deeper nodes
 local function build_dynamic_lookup(dyn_lookup, sound_key, existing_node_sounds)
-	local words = sound_key:Split(" ")
+	local words = {sound_key}
 
 	if data.Loading then
 		data.Loading.Target = data.Loading.Target + #words
