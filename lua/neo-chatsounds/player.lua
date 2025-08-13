@@ -86,6 +86,11 @@ if SERVER then
 		net.Send(filter)
 	end
 
+	-- expose handler in case PlayerSay is hooked by something else
+	if chatsounds then
+		chatsounds.HandlePlayerSay = handler
+	end
+
 	hook.Add("PlayerSay", "chatsounds.Player", function(ply, text, ...)
 		handler(ply, text, "CHAT", ...)
 	end)
